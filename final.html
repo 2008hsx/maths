@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课堂小探究</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+    }
+
+    svg {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 14px;
+    }
+
+    #setB,
+    #textB {
+      transition: opacity 0.5s ease-out;
+    }
+
+    .intersection-lens {
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .permanent-highlight {
+      pointer-events: none;
+    }
+
+    /* 新增字体缩小样式 */
+    #complementaryLabel {
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>课堂小探究</h2>
+  <div>
+    <button onclick="highlightAandOutside()">表示B的对立事件</button>
+    <button onclick="clearOutsideA()">只保留A中的B的对立事件</button>
+    <button onclick="highlightIntersection()">表示AB</button>
+    <button onclick="fadeOutB()">淡出集合B</button>
+    <button onclick="separateIntersection()">分离</button>
+    <button onclick="resetDiagram()">重置</button>
+  </div>
+
+  <svg width="500" height="300" id="venn">
+    <rect x="50" y="50" width="400" height="200" fill="white" stroke="black" />
+    <text x="60" y="70">U</text>
+
+    <g id="overlay-a-outer"></g>
+    <g id="overlay-a-inner"></g>
+    <g id="overlay-red"></g>
+    <g id="overlay-white"></g>
+
+    <circle id="setA" cx="180" cy="150" r="80" fill="none" stroke="black" />
+    <circle id="setB" cx="280" cy="150" r="80" fill="none" opacity="0.5" stroke="black" />
+
+    <text x="130" y="100">A</text>
+    <text id="textB" x="310" y="100">B</text>
+    <text id="intersectionLabel" x="215" y="150" dominant-baseline="middle">AB</text>
+    <!-- 修改后的对立事件文本 -->
+    <text id="complementaryLabel" x="110" y="150" dominant-baseline="middle" 
+          visibility="hidden" font-size="12">AB的对立事件</text>
+  </svg>
+
+  <script>
+    const state = {
+      aHighlighted: false,
+      currentIntersection: null,
+      isBSeparated: false
+    };
+
+    function calculateIntersectionPath(offset = 0) {
+      const A = { cx: 180 + offset, cy: 150, r: 80 };
+      const B = { cx: 280, cy: 150, r: 80 };
+
+      const d = Math.hypot(B.cx - A.cx, B.cy - A.cy);
+      const a = (A.r ** 2 - B.r ** 2 + d ** 2) / (2 * d);
+      const h = Math.sqrt(A.r ** 2 - a ** 2);
+
+      const x2 = A.cx + a * (B.cx - A.cx) / d;
+      const y2 = A.cy + a * (B.cy - A.cy) / d;
+
+      const x3 = x2 - h * (B.cy - A.cy) / d;
+      const y3 = y2 + h * (B.cx - A.cx) / d;
+
+      const x4 = x2 + h * (B.cy - A.cy) / d;
+      const y4 = y2 - h * (B.cx - A.cx) / d;
+
+      return `
+        <path class="intersection-lens"
+              d="M ${x3} ${y3}
+                 A ${A.r} ${A.r} 0 0 1 ${x4} ${y4}
+                 A ${B.r} ${B.r} 0 0 1 ${x3} ${y3}
+                 Z"
+              fill="lightcoral"/>
+      `;
+    }
+
+    function highlightIntersection() {
+      const redOverlay = document.getElementById("overlay-red");
+      const offset = state.isBSeparated ? 150 : 0;
+      redOverlay.innerHTML = calculateIntersectionPath(offset);
+      state.currentIntersection = redOverlay.firstElementChild;
+    }
+
+    function highlightAandOutside() {
+      const innerLayer = document.getElementById("overlay-a-inner");
+      const intersectionPath = calculateIntersectionPath();
+      const intersectionElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      intersectionElement.setAttribute("d", intersectionPath.match(/d="([^"]+)"/)[1]);
+
+      // 带蒙版的内部填充层（排除交集）
+      innerLayer.innerHTML = `
+        <mask id="inner-mask">
+          <circle cx="180" cy="150" r="80" fill="white"/>
+          ${intersectionElement.outerHTML.replace('fill="lightcoral"', 'fill="black"')}
+        </mask>
+        <circle class="permanent-highlight" cx="180" cy="150" r="80"
+                fill="blue" opacity="0.3" mask="url(#inner-mask)"/>
+      `;
+
+      // 外部蒙版（排除A、B和交集区域）
+      const outerLayer = document.getElementById("overlay-a-outer");
+      outerLayer.innerHTML = `
+        <mask id="ext-mask" maskContentUnits="userSpaceOnUse">
+          <rect x="50" y="50" width="400" height="200" fill="white"/>
+          <circle cx="180" cy="150" r="80" fill="black"/>
+          <circle cx="280" cy="150" r="80" fill="black"/>
+          ${intersectionElement.outerHTML.replace('fill="lightcoral"', 'fill="black"')}
+        </mask>
+        <rect x="50" y="50" width="400" height="200"
+              fill="blue" mask="url(#ext-mask)" opacity="0.3"/>
+      `;
+
+      document.getElementById('complementaryLabel').style.visibility = 'visible';
+      state.aHighlighted = true;
+    }
+
+    function clearOutsideA() {
+      document.getElementById("overlay-a-outer").innerHTML = "";
+      // 移除隐藏文本的逻辑
+    }
+
+    function fadeOutB() {
+      const setB = document.getElementById("setB");
+      const textB = document.getElementById("textB");
+      setB.style.opacity = 0;
+      textB.style.opacity = 0;
+
+      if (state.currentIntersection) {
+        state.currentIntersection.style.fill = 'lightcoral';
+      }
+    }
+
+    function separateIntersection() {
+      const lens = document.querySelector('.intersection-lens');
+      if (lens) {
+        lens.style.transform = "translateX(150px)";
+        document.getElementById("intersectionLabel").setAttribute("x", "370");
+        state.isBSeparated = true;
+
+        const whiteOverlay = document.getElementById("overlay-white");
+        whiteOverlay.innerHTML = calculateIntersectionPath(0);
+        const whitePath = whiteOverlay.querySelector('path');
+        if (whitePath) {
+          whitePath.setAttribute('fill', 'white');
+          whitePath.removeAttribute('stroke');
+          const currentTransform = whitePath.style.transform;
+          whitePath.style.transform = currentTransform + " translateX(1px)";
+        }
+
+        document.getElementById('setA').setAttribute('stroke', 'none');
+      }
+    }
+
+    function resetDiagram() {
+      document.querySelectorAll('[id^=overlay]').forEach(layer => layer.innerHTML = "");
+
+      const setB = document.getElementById("setB");
+      const textB = document.getElementById("textB");
+      setB.style.opacity = 0.5;
+      textB.style.opacity = 1;
+
+      document.getElementById("intersectionLabel").setAttribute("x", "215");
+      document.getElementById('setA').setAttribute('stroke', 'black');
+      document.getElementById('complementaryLabel').style.visibility = 'hidden';
+
+      state.aHighlighted = false;
+      state.currentIntersection = null;
+      state.isBSeparated = false;
+    }
+  </script>
+</body>
+
+</html>
