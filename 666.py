@@ -3,8 +3,8 @@ from tkinter import ttk
 import random
 
 class PlaceholderEntry(ttk.Entry):
-    def __init__(self, master=None, placeholder="", **kwargs):
-        super().__init__(master, **kwargs)
+    def __init__(self, master=None, placeholder="", style=None, **kwargs):
+        super().__init__(master, style=style, **kwargs)
         self.placeholder = placeholder
         self.default_fg = self["foreground"]
         self.bind("<FocusIn>", self._clear_placeholder)
@@ -44,7 +44,7 @@ def parse_event_description(description):
     else:
         raise ValueError("不支持的事件格式")
 
-def generate_random_event(is_event_a=True):
+def generate_random_event(is_event_a=True, allowed_indices=None):
     """生成指定类型的事件"""
     if is_event_a:
         types = [
@@ -58,7 +58,11 @@ def generate_random_event(is_event_a=True):
             ("两次取出的球的数字之和是", "range", (2, 12)),
             ("两次取出的球的数字之积是", "list", [1,2,3,4,5,6,8,9,10,12,15,16,18,20,24,25,30,36])
         ]
-    event_type = random.choice(types)
+    if allowed_indices is not None:
+        filtered_types = [types[i] for i in allowed_indices]
+    else:
+        filtered_types = types
+    event_type = random.choice(filtered_types)
     value = random.randint(*event_type[2]) if event_type[1] == "range" else random.choice(event_type[2])
     return f"{event_type[0]}{value}"
 
@@ -66,7 +70,7 @@ class IndependenceApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("独立事件分析器")
-        self.geometry("1024x725")  # 增加窗口高度
+        self.geometry("1024x725")
         self.configure(padx=20, pady=20)
         self.mode = tk.IntVar(value=1)
         self.create_widgets()
@@ -76,6 +80,7 @@ class IndependenceApp(tk.Tk):
         style = ttk.Style()
         style.configure('Big.TButton', font=('微软雅黑', 20), padding=8)
         style.configure('Big.TRadiobutton', font=('微软雅黑', 20))
+        style.configure('Black.TEntry', foreground='black')
 
         # 模式选择
         mode_frame = ttk.Frame(self)
@@ -101,11 +106,11 @@ class IndependenceApp(tk.Tk):
         # 事件A输入组
         a_group = ttk.Frame(self.manual_frame)
         ttk.Label(a_group, text="事件A", font=('微软雅黑', 14)).pack(anchor=tk.W)
-        self.entry_a = PlaceholderEntry(a_group, placeholder="在此输入事件A", 
-                                     width=45, font=('微软雅黑', 20))
+        self.entry_a = PlaceholderEntry(a_group, placeholder="", 
+                                     width=45, font=('微软雅黑', 20), style='Black.TEntry')
         self.entry_a.pack(pady=5)
         ttk.Label(a_group, 
-                text="格式示例：\n1. 第一次取出的球的数字是1\n2. 两次取出的球的数字之和是7\n3. 两次取出的球的数字之积是12",
+                text="格式示例：\n1. 第一次取出的球的数字是1\n2. 第二次取出的球的数字是2",
                 font=('微软雅黑', 12),
                 foreground="#666666",
                 justify=tk.LEFT).pack(anchor=tk.W)
@@ -113,12 +118,12 @@ class IndependenceApp(tk.Tk):
 
         # 事件B输入组
         b_group = ttk.Frame(self.manual_frame)
-        ttk.Label(b_group, text="", font=('微软雅黑', 14)).pack(anchor=tk.W)
-        self.entry_b = PlaceholderEntry(b_group, placeholder="在此输入事件B",
-                                     width=45, font=('微软雅黑', 20))
+        ttk.Label(b_group, text="事件B", font=('微软雅黑', 14)).pack(anchor=tk.W)
+        self.entry_b = PlaceholderEntry(b_group, placeholder="",
+                                     width=45, font=('微软雅黑', 20), style='Black.TEntry')
         self.entry_b.pack(pady=5)
         ttk.Label(b_group,
-                text="格式示例：\n1. 第二次取出的球的数字是4\n2. 两次取出的球的数字之和是9\n3. 两次取出的球的数字之积是18",
+                text="格式示例：\n1. 两次取出的球的数字之和是7\n2. 两次取出的球的数字之和是8",
                 font=('微软雅黑', 12),
                 foreground="#666666",
                 justify=tk.LEFT).pack(anchor=tk.W)
@@ -151,8 +156,13 @@ class IndependenceApp(tk.Tk):
 
     def generate_events(self):
         try:
-            self.event_a = generate_random_event(is_event_a=True)
-            self.event_b = generate_random_event(is_event_a=False)
+            is_independent = random.choice([True, False])
+            if is_independent:
+                self.event_a = generate_random_event(is_event_a=True, allowed_indices=[0])
+                self.event_b = generate_random_event(is_event_a=False, allowed_indices=[0])
+            else:
+                self.event_a = generate_random_event(is_event_a=True, allowed_indices=[0])
+                self.event_b = generate_random_event(is_event_a=False, allowed_indices=[1,2])
             self.lbl_a.config(text=f"事件A：{self.event_a}")
             self.lbl_b.config(text=f"事件B：{self.event_b}")
             self.lbl_a.pack(pady=5)
@@ -171,8 +181,6 @@ class IndependenceApp(tk.Tk):
                 b_desc = self.entry_b.get_clean()
                 if not a_desc or not b_desc:
                     raise ValueError("请输入有效的事件描述")
-                
-                # 验证事件描述
                 if "第二次" in a_desc:
                     raise ValueError("事件A必须与第一次取出相关")
                 if "第一次" in b_desc:
