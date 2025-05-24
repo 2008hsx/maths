@@ -181,10 +181,7 @@ class IndependenceApp(tk.Tk):
                 b_desc = self.entry_b.get_clean()
                 if not a_desc or not b_desc:
                     raise ValueError("请输入有效的事件描述")
-                if "第二次" in a_desc:
-                    raise ValueError("事件A必须与第一次取出相关")
-                if "第一次" in b_desc:
-                    raise ValueError("事件B必须与第二次取出相关")
+                
 
             a_func = parse_event_description(a_desc)
             b_func = parse_event_description(b_desc)
