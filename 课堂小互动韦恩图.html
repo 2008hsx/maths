@@ -76,6 +76,7 @@ body {
 #setA {
   stroke: #3b82f6;
   fill: rgba(59,130,246,0.06);
+  transition: stroke 0.3s ease, fill 0.3s ease;
 }
 
 #setB {
@@ -257,23 +258,39 @@ function highlightIntersection() {
   const highlightLayer = document.getElementById('highlightLayer');
   const intersectionPath = getIntersectionPath();
   
-  highlightLayer.innerHTML = `
-    <path d="${intersectionPath}" 
-          fill="lightcoral" 
-          fill-opacity="0.8"/>
-  `;
+  // 检查是否已经有交集高亮，如果没有则添加
+  let intersectionElement = document.getElementById('intersectionHighlight');
+  if (!intersectionElement) {
+    intersectionElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    intersectionElement.id = 'intersectionHighlight';
+    intersectionElement.setAttribute('fill', 'lightcoral');
+    intersectionElement.setAttribute('fill-opacity', '0.8');
+    highlightLayer.appendChild(intersectionElement);
+  }
+  
+  // 更新交集路径
+  intersectionElement.setAttribute('d', intersectionPath);
+  
+  // 如果已经分离，则应用变换
+  if (state.isBSeparated) {
+    intersectionElement.style.transform = 'translateX(150px)';
+  }
+  
+  // ✅ 去除A的边框和底色
+  const setA = document.getElementById('setA');
+  setA.style.stroke = 'none';
+  setA.style.fill = 'transparent';
 }
 
 function fadeOutB() {
   document.getElementById("setB").style.opacity = 0;
-  document.getElementById("textB").style.opacity = 0;
+  document.getElementById("textB").style.opacity = 0;  文档.getElementById("textB").样式.透明度 = 0;
 }
 
-function separateIntersection() {
-  const highlightLayer = document.getElementById('highlightLayer');
-  const path = highlightLayer.querySelector('path');
-  if (path) {
-    path.style.transform = 'translateX(150px)';
+function separateIntersection() {函数 separateIntersection() {
+  const intersectionElement = document.getElementById('intersectionHighlight');
+  if (intersectionElement) {
+    intersectionElement.style.transform = 'translateX(150px)';
     document.getElementById('intersectionLabel').setAttribute('x', '370');
     state.isBSeparated = true;
   }
@@ -281,13 +298,19 @@ function separateIntersection() {
 
 function resetDiagram() {
   document.getElementById('highlightLayer').innerHTML = '';
-  document.getElementById('setB').style.opacity = 0.5;
-  document.getElementById('textB').style.opacity = 1;
-  document.getElementById('intersectionLabel').setAttribute('x', '215');
+  document.getElementById('setB').style.opacity = 0.5;  文档.getElementById('setB').样式.不透明度 = 0.5;
+  document.getElementById('textB').style.opacity = 1;  文档.getElementById('textB').样式.不透明度 = 1;
+  document.getElementById('intersectionLabel').setAttribute('x', '215');  文档.getElementById('intersectionLabel').setAttribute('x', '215');
   document.getElementById('complementaryLabel').style.visibility = 'hidden';
+  
+  // ✅ 恢复A的边框和底色
+  const setA = document.getElementById('setA');
+  setA.style.stroke = '#3b82f6';
+  setA.style.fill = 'rgba(59,130,246,0.06)';
+  
   state.isBSeparated = false;
   state.currentIntersection = null;
 }
-</script>
-</body>
+</script></脚本>
+</body></身体>
 </html>
