@@ -95,12 +95,7 @@ P(AB) = |A ∩ B| / 36
 
 ### 运行方式
 
-直接用浏览器打开即可：
-
-```bash
-# 或用任意 HTTP 服务器
-python -m http.server 8080
-# 访问 http://localhost:8080/venn.html
+直接用浏览器打开即可
 ```
 
 ### 数学对应
@@ -131,21 +126,3 @@ python -m http.server 8080
 | 操作系统 | Windows / macOS / Linux 均可 |
 
 ---
-
-## 📝 未来改进方向
-
-- [ ] 独立事件分析器：增加"样本空间可视化"面板
-- [ ] 独立事件分析器：支持无放回抽取场景
-- [ ] Venn 图：支持三个集合的 Venn 图（三圆交集）
-- [ ] Venn 图：增加拖拽交互，让学生自由探索
-- [ ] 统一打包为 Web 应用（如 Streamlit / Gradio）
-
----
-
-## 📄 License
-
-MIT License —— 自由使用、修改和分发。
-
----
-
-> 💬 如有问题或建议，欢迎提 Issue 或联系作者。
