@@ -1,4 +1,3 @@
-[🧪 课堂小探究.md](https://github.com/user-attachments/files/29406340/default.md)
 # 🧪 课堂小探究 \- Venn 图互动演示课堂小探究 \- Venn 图互动演示
 
  基于 HTML \+ SVG \+ JavaScript 实现的集合运算交互式韦恩图演示工具，适用于数学课堂教学、知识点可视化讲解
@@ -43,7 +42,7 @@ __📁 项目结构__
 
 plaintext纯文本
 
-venn\-venn\-diagram/维恩图/维恩图
+venn\-venn\-diagram/维恩图/维恩图维恩图/维恩图/维恩图
 
 └── index\.html  \# 主文件（包含HTML结构、样式、交互逻辑）
 
