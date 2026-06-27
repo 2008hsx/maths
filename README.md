@@ -42,7 +42,7 @@ __📁 项目结构__
 
 plaintext纯文本
 
-venn\-venn\-diagram/维恩图/维恩图维恩图/维恩图/维恩图
+venn\-venn\-diagram/维恩图/维恩图维恩图/维恩图/维恩图维恩图/维恩图/维恩图维恩图/维恩图/维恩图
 
 └── index\.html  \# 主文件（包含HTML结构、样式、交互逻辑）
 
